@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Lotteria</title>
+    <link rel="stylesheet" th:href="@{/styles/font.css}"/>
+    <link rel="stylesheet" th:href="@{/styles/normalize.css}"/>
+    <link rel="stylesheet" th:href="@{/styles/lotteria.css}"/>
+</head>
+<body>
+<header class="title-box wrap-box">
+    <h3 class="inner-box">롯데리아</h3>
+</header>
+<article class="wrap-box">
+    <section class="inner-box tab-box">
+        <label aria-label="추천메뉴 탭" role="tab">
+            <span>추천메뉴</span>
+            <input checked="checked" hidden="hidden" name="tab-content" type="radio"/>
+        </label>
+        <label aria-label="전체메뉴 탭" role="tab">
+            <span>전체메뉴</span>
+            <input hidden="hidden" name="tab-content" type="radio"/>
+        </label>
+        <label>
+            <span>이름</span>
+            <input id="search-hamburger" class="search-field" type="text">
+        </label>
+    </section>
+    <section class="inner-box list-box">
+        <!--        <div class="hamburger-box" th:each="hamburger : ${hamburgerList}">-->
+        <!--            <img class="hamburger-image" th:alt="${hamburger.getName()}" th:src="${hamburger.getImagePath()}"/>-->
+        <!--            <p class="hamburger-data hamburger-name" th:text="${hamburger.getName()}"></p>-->
+        <!--            <p class="hamburger-data hamburger-price" th:text="${hamburger.getPrice().toString() + '원'}"></p>-->
+        <!--        </div>-->
+    </section>
+</article>
+<button id="test-button" onclick="alert('버튼 클릭')">나만의 버튼</button>
+</body>
+<script defer>
+    window.addEventListener("DOMContentLoaded", async function () {
+        const button = document.getElementById('test-button');
+        const clickEvent = new Event('click');
+        button.dispatchEvent(clickEvent);
+
+        const listBox = document.querySelector(".list-box");
+        const hamburgers = (await (await fetch("lotteria-menus")).json());
+
+        function createHamburgerElement(data) {
+            const wrap = document.createElement("div");
+            wrap.className = 'hamburger-box';
+
+            const img = document.createElement("img");
+            img.src = data['imagePath'];
+            img.className = 'hamburger-img';
+
+            const name = document.createElement("p");
+            name.textContent = data['name'];
+            name.classList.add("hamburger-data");
+            name.classList.add("hamburger-name");
+
+            const price = document.createElement("p");
+            price.textContent = data['price'];
+            name.classList.add("hamburger-data");
+            name.classList.add("hamburger-price");
+
+            wrap.appendChild(img);
+            wrap.appendChild(name);
+            wrap.appendChild(price);
+
+            return wrap;
+        }
+
+        hamburgers.forEach(hamburger => {
+            const hamburgerData = createHamburgerElement(hamburger);
+            listBox.appendChild(hamburgerData);
+        })
+
+        const searchField = document.querySelector(".search-field");
+        searchField.addEventListener("input", async function(e) {
+            let {value} = e.target;
+            value = window.encodeURIComponent(value);
+
+            const response = await fetch(`lotteria-menus?name=${value}`);
+            const hamburgers = await response.json();
+
+            listBox.replaceChildren();
+            hamburgers.forEach(hamburger => {
+                const hamburgerElement = createHamburgerElement(hamburger);
+                listBox.appendChild(hamburgerElement);
+            })
+        })
+    });
+
+
+</script>
+</html>
